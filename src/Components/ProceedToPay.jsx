@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext"; // adjust path if different
+import DarazFooter from "./DarazFooter";
 
 const ProceedToPayPage = () => {
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -659,6 +660,15 @@ const ProceedToPayPage = () => {
             </div>
           </div>
         </div>
+      </div>
+      <br></br>
+      <div
+        style={{
+          margintop: "auto" /* Pushes footer to the bottom */,
+          padding: "80px",
+        }}
+      >
+        <DarazFooter />
       </div>
     </div>
   );
