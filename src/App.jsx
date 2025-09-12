@@ -7,6 +7,7 @@ import { CartProvider } from "./Components/CartContext.jsx";
 import CartPage from "./Components/CartPage.jsx";
 import SearchPage from "./Components/SearchPage.jsx";
 import CheckoutPage from "./Components/CheckoutPage.jsx";
+import ProceedToPayPage from "./Components/ProceedToPay.jsx";
 // ✅ import kiya
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="//proceed-to-pay" element={<ProceedToPayPage />} />
           </Routes>
         </Router>
       </CartProvider>
