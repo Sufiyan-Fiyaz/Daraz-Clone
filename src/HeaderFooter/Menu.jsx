@@ -1,30 +1,96 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../Components/CartContext.jsx";
 import products from "../Components/ProductData.jsx";
+import axios from "axios";
 
 const Navbar = () => {
   const [hovered, setHovered] = useState(null);
   const [showAppPopup, setShowAppPopup] = useState(false);
+  const [showHelpPopup, setShowHelpPopup] = useState(false);
   const { cart } = useCart();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [userName, setUserName] = useState("");
+
   const navigate = useNavigate();
+
+  // ✅ Refs for outside click
+  const appPopupRef = useRef(null);
+  const helpPopupRef = useRef(null);
+
+  // ✅ Hide popup on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        appPopupRef.current &&
+        !appPopupRef.current.contains(event.target) &&
+        helpPopupRef.current &&
+        !helpPopupRef.current.contains(event.target)
+      ) {
+        setShowAppPopup(false);
+        setShowHelpPopup(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("userName");
+    if (storedName) {
+      setUserName(storedName);
+    } else {
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        axios
+          .get(`https://localhost:7265/api/Users/${userId}`)
+          .then((res) => {
+            if (res.data && res.data.fullName) {
+              setUserName(res.data.fullName);
+              localStorage.setItem("userName", res.data.fullName);
+            }
+          })
+          .catch((err) => console.error("API error:", err));
+      }
+    }
+
+    const handleUserLogin = () => {
+      const updatedName = localStorage.getItem("userName");
+      setUserName(updatedName || "");
+    };
+
+    window.addEventListener("userLogin", handleUserLogin);
+    return () => {
+      window.removeEventListener("userLogin", handleUserLogin);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    setUserName("");
+    window.dispatchEvent(new Event("userLogin"));
+    navigate("/");
+  };
 
   const links = [
     "SAVE MORE ON APP",
     "SELL ON DARAZ",
     "HELP & SUPPORT",
-    "LOGIN",
-    "SIGN UP",
+    userName ? `${userName} Account` : "LOGIN",
+    !userName ? "SIGN UP" : null,
     "زبان تبدیل کریں",
-  ];
+  ].filter(Boolean);
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setQuery(value);
 
     if (value.trim() !== "") {
-      // lowercase match
       const filtered = products.filter((p) => {
         const title = p.title ? p.title.toLowerCase() : "";
         const desc = p.description ? p.description.toLowerCase() : "";
@@ -35,9 +101,8 @@ const Navbar = () => {
       });
 
       if (filtered.length > 0) {
-        setSuggestions(filtered.slice(0, 5)); // agar match mila
+        setSuggestions(filtered.slice(0, 5));
       } else {
-        // agar match nahi mila to random products dikhao
         const shuffled = [...products].sort(() => 0.5 - Math.random());
         setSuggestions(shuffled.slice(0, 5));
       }
@@ -93,6 +158,14 @@ const Navbar = () => {
               e.preventDefault();
               if (text === "SAVE MORE ON APP") {
                 setShowAppPopup(!showAppPopup);
+                setShowHelpPopup(false);
+              } else if (text === "HELP & SUPPORT") {
+                setShowHelpPopup(!showHelpPopup);
+                setShowAppPopup(false);
+              } else if (text === "LOGIN") {
+                navigate("/login");
+              } else if (text === "SIGN UP") {
+                navigate("/signup");
               }
             }}
           >
@@ -100,9 +173,28 @@ const Navbar = () => {
           </a>
         ))}
 
+        {/* Logout Button */}
+        {userName && (
+          <button
+            onClick={handleLogout}
+            style={{
+              marginLeft: "10px",
+              background: "transparent",
+              border: "1px solid white",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "12px",
+              padding: "2px 6px",
+            }}
+          >
+            Logout
+          </button>
+        )}
+
         {/* App Popup */}
         {showAppPopup && (
           <div
+            ref={appPopupRef}
             style={{
               position: "absolute",
               top: "35px",
@@ -128,13 +220,8 @@ const Navbar = () => {
             >
               Download Daraz App
             </div>
-
             <div
-              style={{
-                display: "flex",
-                gap: "15px",
-                alignItems: "flex-start",
-              }}
+              style={{ display: "flex", gap: "15px", alignItems: "flex-start" }}
             >
               <img
                 src="https://gw.alicdn.com/imgextra/i2/O1CN01jHjmpl1pxcRVgFrYS_!!6000000005427-0-tps-150-150.jpg"
@@ -146,7 +233,6 @@ const Navbar = () => {
                   borderRadius: "4px",
                 }}
               />
-
               <div
                 style={{
                   display: "flex",
@@ -164,33 +250,121 @@ const Navbar = () => {
                 >
                   Scan with mobile
                 </div>
-
                 <a href="#" style={{ display: "block", width: "100%" }}>
                   <img
                     src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
                     alt="App Store"
-                    style={{
-                      height: "32px",
-                      width: "auto",
-                      cursor: "pointer",
-                    }}
+                    style={{ height: "32px", width: "auto", cursor: "pointer" }}
                   />
                 </a>
-
                 <a href="#" style={{ display: "block", width: "100%" }}>
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                     alt="Google Play"
-                    style={{
-                      height: "38px",
-                      width: "auto",
-                      cursor: "pointer",
-                    }}
+                    style={{ height: "38px", width: "auto", cursor: "pointer" }}
                   />
                 </a>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Help & Support Popup */}
+        {showHelpPopup && (
+          <>
+            <style jsx>{`
+              @keyframes slideDown {
+                from {
+                  opacity: 0;
+                  transform: translateY(-10px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .help-popup {
+                position: absolute;
+                top: 35px;
+                right: 290px;
+                background-color: white;
+                color: #212121;
+                padding: 8px 0;
+                border-radius: 8px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                width: 240px;
+                z-index: 1000;
+                animation: slideDown 0.3s ease-out;
+                border: 1px solid #e0e0e0;
+                overflow: hidden;
+              }
+
+              .help-item {
+                padding: 12px 20px;
+                font-size: 14px;
+                cursor: pointer;
+                color: #424242;
+                position: relative;
+                transition: all 0.2s ease;
+                font-weight: 400;
+                border-bottom: 1px solid #f5f5f5;
+              }
+
+              .help-item:last-child {
+                border-bottom: none;
+              }
+
+              .help-item:hover {
+                background-color: #fff;
+                color: #ff6801;
+                padding-left: 24px;
+              }
+
+              .help-item::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 20px;
+                right: 20px;
+                height: 2px;
+                background-color: #ff6801;
+                transform: scaleX(0);
+                transform-origin: left;
+                transition: transform 0.3s ease;
+              }
+
+              .help-item:hover::after {
+                transform: scaleX(1);
+              }
+
+              .help-item:last-child::after {
+                display: none;
+              }
+            `}</style>
+
+            <div ref={helpPopupRef} className="help-popup">
+              {[
+                "Help Center",
+                "Contact Customer Care",
+                "Order",
+                "Shipping & Delivery",
+                "Payment",
+                "Returns & Refunds",
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="help-item"
+                  onClick={() => {
+                    setShowHelpPopup(false);
+                    alert(`${item} clicked`);
+                  }}
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -312,7 +486,7 @@ const Navbar = () => {
             )}
           </div>
           <div>
-            {/* Cart Icon - Navigate to Cart Page */}
+            {/* Cart Icon */}
             <Link
               to="/cart"
               style={{ marginLeft: "15px", position: "relative" }}
@@ -339,8 +513,6 @@ const Navbar = () => {
                   fill="white"
                 ></path>
               </svg>
-
-              {/* Badge */}
               {cart.length > 0 && (
                 <span
                   style={{

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext"; // adjust path if different
 import DarazFooter from "./DarazFooter";
+import { sendOrderEmail } from "./emailService"; // adjust path if needed
 
 const ProceedToPayPage = () => {
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -12,6 +13,8 @@ const ProceedToPayPage = () => {
   const navigate = useNavigate();
   const { clearCart } = useCart();
   const { orderSummary, address } = location.state || {};
+  const loggedInUser = JSON.parse(localStorage.getItem("userId"));
+  const userEmail = loggedInUser?.email || ""; // safely get email
 
   const handlePayment = () => {
     if (!selectedPayment) {
@@ -39,12 +42,21 @@ const ProceedToPayPage = () => {
     }
   };
 
-  const handleConfirmOrder = () => {
-    if (selectedPayment === "cod") {
-      setShowThankYouPopup(true); // Show popup only for COD
-      clearCart([]);
-    } else {
-      console.log("Order confirmed with payment method:", selectedPayment);
+  const handleConfirmOrder = async () => {
+    const orderId = "DZ123456789";
+
+    try {
+      await sendOrderEmail({
+        to_name: loggedInUser.name,
+        to_email: userEmail, // use logged-in user's email
+        order_id: orderId,
+        amount: totalAmount,
+        payment_method: selectedPayment,
+      });
+      alert("Order email sent!");
+    } catch (error) {
+      console.error("Failed to send order email:", error);
+      alert("Failed to send order email!");
     }
   };
 
@@ -540,44 +552,242 @@ const ProceedToPayPage = () => {
           >
             <div
               style={{
-                background: "white",
-                padding: "30px",
-                borderRadius: "8px",
+                background: "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
+                padding: "40px 35px",
+                borderRadius: "12px",
                 textAlign: "center",
-                width: "350px",
-                boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+                width: "420px",
+                maxWidth: "90vw",
+                boxShadow:
+                  "0 15px 35px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.1)",
+                border: "1px solid rgba(245, 114, 36, 0.1)",
+                position: "relative",
+                animation: "popupSlideIn 0.3s ease-out",
               }}
             >
-              <h2 style={{ color: "#28a745", marginBottom: "15px" }}>
-                🎉 Thank You!
+              {/* Success Icon */}
+              <div
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  backgroundColor: "#28a745",
+                  borderRadius: "50%",
+                  margin: "0 auto 25px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 8px 25px rgba(40, 167, 69, 0.3)",
+                  animation: "iconBounce 0.6s ease-out 0.2s both",
+                }}
+              >
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M9 12l2 2 4-4"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h2
+                style={{
+                  color: "#2c3e50",
+                  marginBottom: "12px",
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  letterSpacing: "-0.5px",
+                }}
+              >
+                Order Placed Successfully!
               </h2>
+
+              {/* Thank you message */}
               <p
                 style={{
-                  marginBottom: "20px",
-                  fontSize: "14px",
-                  color: "#333",
+                  fontSize: "16px",
+                  color: "#28a745",
+                  fontWeight: "600",
+                  marginBottom: "8px",
+                }}
+              >
+                🎉 Thank You!
+              </p>
+
+              {/* Description */}
+              <p
+                style={{
+                  marginBottom: "25px",
+                  fontSize: "15px",
+                  color: "#6c757d",
+                  lineHeight: "1.5",
+                  maxWidth: "320px",
+                  margin: "0 auto 25px",
                 }}
               >
                 Your order has been placed successfully using Cash on Delivery.
+                You'll receive a confirmation SMS shortly.
               </p>
-              <button
-                onClick={() => {
-                  navigate("/");
-                  clearCart([]); // ✅ clear cart
-                }}
+
+              {/* Order Info Box */}
+              <div
                 style={{
-                  backgroundColor: "#f57224",
-                  color: "white",
-                  padding: "10px 20px",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
+                  backgroundColor: "rgba(245, 114, 36, 0.05)",
+                  border: "1px solid rgba(245, 114, 36, 0.1)",
+                  borderRadius: "8px",
+                  padding: "15px",
+                  marginBottom: "30px",
                   fontSize: "14px",
-                  fontWeight: "600",
                 }}
               >
-                Continue Shopping
-              </button>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <span style={{ color: "#6c757d" }}>Order ID:</span>
+                  <span style={{ color: "#2c3e50", fontWeight: "600" }}>
+                    #DZ123456789
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <span style={{ color: "#6c757d" }}>Payment:</span>
+                  <span style={{ color: "#28a745", fontWeight: "600" }}>
+                    Cash on Delivery
+                  </span>
+                </div>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span style={{ color: "#6c757d" }}>Delivery:</span>
+                  <span style={{ color: "#2c3e50", fontWeight: "600" }}>
+                    3-5 Business Days
+                  </span>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  justifyContent: "center",
+                }}
+              >
+                <button
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#f57224",
+                    padding: "12px 24px",
+                    border: "2px solid #f57224",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    transition: "all 0.3s ease",
+                    minWidth: "120px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#f57224";
+                    e.target.style.color = "white";
+                    e.target.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = "transparent";
+                    e.target.style.color = "#f57224";
+                    e.target.style.transform = "translateY(0)";
+                  }}
+                >
+                  Track Order
+                </button>
+
+                <button
+                  onClick={() => {
+                    navigate("/");
+                    clearCart([]);
+                  }}
+                  style={{
+                    backgroundColor: "#f57224",
+                    color: "white",
+                    padding: "12px 24px",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    boxShadow: "0 4px 15px rgba(245, 114, 36, 0.3)",
+                    transition: "all 0.3s ease",
+                    minWidth: "140px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#e55a15";
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow =
+                      "0 6px 20px rgba(245, 114, 36, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = "#f57224";
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow =
+                      "0 4px 15px rgba(245, 114, 36, 0.3)";
+                  }}
+                >
+                  Continue Shopping
+                </button>
+              </div>
+
+              {/* Decorative elements */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-5px",
+                  left: "-5px",
+                  right: "-5px",
+                  height: "4px",
+                  background:
+                    "linear-gradient(90deg, #f57224, #ff8c42, #f57224)",
+                  borderRadius: "12px 12px 0 0",
+                }}
+              />
+
+              <style>
+                {`
+      @keyframes popupSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      
+      @keyframes iconBounce {
+        from {
+          opacity: 0;
+          transform: scale(0);
+        }
+        60% {
+          transform: scale(1.1);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    `}
+              </style>
             </div>
           </div>
         )}
