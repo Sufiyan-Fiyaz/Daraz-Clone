@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState(""); // email or phone
@@ -22,20 +23,20 @@ const Login = () => {
 
     try {
       const res = await axios.post("https://localhost:7265/api/Users/login", {
-        identifier: identifier, // email or phone
+        identifier: identifier,
         password: password,
       });
 
-      // store token if returned
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
       }
 
-      // ✅ yaha userId aur userName save karo
       localStorage.setItem("userId", res.data.id);
       localStorage.setItem("userName", res.data.fullName);
 
-      alert(res.data.message || "Login successful!");
+      // ✅ show toast instead of alert
+      toast.success(res.data.message || "Login successful!");
+
       window.dispatchEvent(new Event("userLogin"));
 
       // Clear form
@@ -43,12 +44,12 @@ const Login = () => {
       setPassword("");
       setError("");
       login(res.data);
-      navigate("/"); // redirect after login
+      navigate("/");
     } catch (err) {
       if (err.response && err.response.data) {
-        setError(err.response.data.message || "Invalid credentials");
+        toast.error(err.response.data.message || "Invalid credentials");
       } else {
-        setError("Network error. Please try again.");
+        toast.error("Network error. Please try again.");
       }
     }
   };

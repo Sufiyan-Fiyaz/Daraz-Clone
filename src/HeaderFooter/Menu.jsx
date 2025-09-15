@@ -8,7 +8,9 @@ const Navbar = () => {
   const [hovered, setHovered] = useState(null);
   const [showAppPopup, setShowAppPopup] = useState(false);
   const [showHelpPopup, setShowHelpPopup] = useState(false);
+  const [showLanguagePopup, setShowLanguagePopup] = useState(false);
   const { cart } = useCart();
+  const { clearCart } = useCart();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [userName, setUserName] = useState("");
@@ -16,20 +18,38 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // ✅ Refs for outside click
+  // ✅ Refs for outside click
   const appPopupRef = useRef(null);
   const helpPopupRef = useRef(null);
+  const languagePopupRef = useRef(null);
 
-  // ✅ Hide popup on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // App Popup
       if (
+        showAppPopup &&
         appPopupRef.current &&
-        !appPopupRef.current.contains(event.target) &&
+        !appPopupRef.current.contains(event.target)
+      ) {
+        setShowAppPopup(false);
+      }
+
+      // Help Popup
+      if (
+        showHelpPopup &&
         helpPopupRef.current &&
         !helpPopupRef.current.contains(event.target)
       ) {
-        setShowAppPopup(false);
         setShowHelpPopup(false);
+      }
+
+      // Language Popup
+      if (
+        showLanguagePopup &&
+        languagePopupRef.current &&
+        !languagePopupRef.current.contains(event.target)
+      ) {
+        setShowLanguagePopup(false);
       }
     };
 
@@ -37,7 +57,7 @@ const Navbar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [showAppPopup, showHelpPopup, showLanguagePopup]);
 
   useEffect(() => {
     const storedName = localStorage.getItem("userName");
@@ -74,6 +94,8 @@ const Navbar = () => {
     localStorage.removeItem("userName");
     setUserName("");
     window.dispatchEvent(new Event("userLogin"));
+
+    clearCart(); // pass empty array if your function needs it
     navigate("/");
   };
 
@@ -159,6 +181,8 @@ const Navbar = () => {
               if (text === "SAVE MORE ON APP") {
                 setShowAppPopup(!showAppPopup);
                 setShowHelpPopup(false);
+              } else if (text === "SELL ON DARAZ") {
+                navigate("/sell-on-daraz");
               } else if (text === "HELP & SUPPORT") {
                 setShowHelpPopup(!showHelpPopup);
                 setShowAppPopup(false);
@@ -166,6 +190,8 @@ const Navbar = () => {
                 navigate("/login");
               } else if (text === "SIGN UP") {
                 navigate("/signup");
+              } else if (text === "زبان تبدیل کریں") {
+                setShowLanguagePopup(!showLanguagePopup); // ✅ open popup
               }
             }}
           >
@@ -365,6 +391,92 @@ const Navbar = () => {
               ))}
             </div>
           </>
+        )}
+        {showLanguagePopup && (
+          <div
+            ref={languagePopupRef}
+            style={{
+              position: "absolute",
+              top: "35px",
+              right: "15px",
+              backgroundColor: "white",
+              border: "1px solid #e0e0e0",
+              borderRadius: "4px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              width: "220px",
+              zIndex: 1000,
+              display: "flex", // ✅ row layout
+              justifyContent: "space-between",
+              padding: "10px 15px",
+            }}
+          >
+            {/* Urdu Option */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: "#333",
+              }}
+              onClick={() => setShowLanguagePopup(false)}
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Flag_of_Pakistan.svg/250px-Flag_of_Pakistan.svg.png"
+                alt="Pakistan Flag"
+                style={{
+                  width: "20px",
+                  height: "14px",
+                  objectFit: "cover",
+                  marginRight: "8px",
+                }}
+              />
+              <span
+                style={{ marginRight: "4px", fontSize: "12px", color: "#666" }}
+              >
+                UR /
+              </span>
+              <span style={{ fontSize: "13px", color: "#333" }}>Urdu</span>
+            </div>
+
+            {/* English Option */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: "#333",
+              }}
+              onClick={() => setShowLanguagePopup(false)}
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Flag_of_Great_Britain_%281707%E2%80%931800%29.svg"
+                alt="UK Flag"
+                style={{
+                  width: "20px",
+                  height: "14px",
+                  objectFit: "cover",
+                  marginRight: "8px",
+                }}
+              />
+              <span
+                style={{ marginRight: "4px", fontSize: "12px", color: "#666" }}
+              >
+                EN /
+              </span>
+              <span style={{ fontSize: "13px", color: "#333" }}>English</span>
+              <div
+                style={{
+                  marginLeft: "6px",
+                  color: "#4CAF50",
+                  fontSize: "16px",
+                }}
+              >
+                ✓
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

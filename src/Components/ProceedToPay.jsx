@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext"; // adjust path if different
-import DarazFooter from "./DarazFooter";
-import { sendOrderEmail } from "./emailService"; // adjust path if needed
+import DarazFooter from "../HeaderFooter/DarazFooter";
+import { sendOrderEmail } from "../EmailData/emailService"; // adjust path if needed
 
 const ProceedToPayPage = () => {
   const [selectedPayment, setSelectedPayment] = useState("");
@@ -56,7 +56,10 @@ const ProceedToPayPage = () => {
       alert("Order email sent!");
     } catch (error) {
       console.error("Failed to send order email:", error);
-      alert("Failed to send order email!");
+    } finally {
+      // ✅ Popup will show no matter what
+      setShowThankYouPopup(true);
+      clearCart(); // optional
     }
   };
 

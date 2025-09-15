@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { sendWelcomeEmail } from "./emailService"; // ✅ Import email function
+import { sendWelcomeEmail } from "../EmailData/emailService"; // ✅ Import email function
+import { toast } from "react-toastify";
 
 const Signup = () => {
   const [fullName, setFullName] = useState("");
@@ -33,7 +34,7 @@ const Signup = () => {
         }
       );
 
-      alert(res.data.message || "Registration successful!");
+      toast.success(res.data.message || "Registration successful!");
 
       // ✅ Send Welcome Email automatically
       try {
@@ -53,9 +54,9 @@ const Signup = () => {
       navigate("/login"); // Redirect to login page
     } catch (err) {
       if (err.response && err.response.data) {
-        setError(err.response.data.message || "Registration failed");
+        toast.error(err.response.data.message || "Registration failed");
       } else {
-        setError("Network error. Please try again.");
+        toast.error("Network error. Please try again.");
       }
     }
   };

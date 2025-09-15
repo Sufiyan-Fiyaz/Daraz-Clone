@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import PaymentMethods from "./PaymentMethods";
+import PaymentMethods from "../Components/PaymentMethods";
 
 const DarazFooter = () => {
   const [isActive, setIsActive] = useState(false);

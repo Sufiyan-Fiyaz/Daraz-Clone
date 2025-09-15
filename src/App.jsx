@@ -8,11 +8,14 @@ import CartPage from "./Components/CartPage.jsx";
 import SearchPage from "./Components/SearchPage.jsx";
 import CheckoutPage from "./Components/CheckoutPage.jsx";
 import ProceedToPayPage from "./Components/ProceedToPay.jsx";
-import Signup from "./Components/Signup.jsx";
-import Login from "./Components/Login.jsx";
+import Signup from "./UserInfo/Signup.jsx";
+import Login from "./UserInfo/Login.jsx";
+import SellOnDaraz from "./Components/SellOnDaraz.jsx";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // ✅ yaha se AuthProvider bhi import karo
-import { AuthProvider } from "./Components/AuthContext.jsx";
+import { AuthProvider } from "./UserInfo/AuthContext.jsx";
 
 function App() {
   return (
@@ -21,6 +24,7 @@ function App() {
         <CartProvider>
           <Router>
             <Navbar /> {/* ✅ Navbar global rakha */}
+            <ToastContainer position="top-right" autoClose={3000} />
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/product/:id" element={<ProductDetail />} />
@@ -30,6 +34,7 @@ function App() {
               <Route path="/proceed-to-pay" element={<ProceedToPayPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/sell-on-daraz" element={<SellOnDaraz />} />
             </Routes>
           </Router>
         </CartProvider>

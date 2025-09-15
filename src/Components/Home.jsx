@@ -9,7 +9,7 @@ import SaleBanner from "../assets/SliderImages/Slide7.gif";
 import FlashSale from "./FlashSale";
 import Categories from "./Categories";
 import ProductGrid from "./JustForYou";
-import DarazFooter from "./DarazFooter";
+import DarazFooter from "../HeaderFooter/DarazFooter";
 
 const Home = () => {
   const images = [Slide1, Slide2, Slide3, Slide4, Slide5, Slide6];
