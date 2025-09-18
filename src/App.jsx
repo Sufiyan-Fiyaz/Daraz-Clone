@@ -13,6 +13,7 @@ import Login from "./UserInfo/Login.jsx";
 import SellOnDaraz from "./Components/SellOnDaraz.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ChatBox from "./HeaderFooter/ChatBox.jsx";
 
 // ✅ yaha se AuthProvider bhi import karo
 import { AuthProvider } from "./UserInfo/AuthContext.jsx";
@@ -24,6 +25,7 @@ function App() {
         <CartProvider>
           <Router>
             <Navbar /> {/* ✅ Navbar global rakha */}
+            <ChatBox />
             <ToastContainer position="top-right" autoClose={3000} />
             <Routes>
               <Route path="/" element={<Home />} />

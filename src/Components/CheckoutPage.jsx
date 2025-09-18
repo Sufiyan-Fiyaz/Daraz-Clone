@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext";
+import { toast } from "react-toastify";
 
 const CheckoutPage = () => {
   const { cart } = useCart();
@@ -58,7 +59,7 @@ const CheckoutPage = () => {
       !formData.houseNo ||
       !formData.address
     ) {
-      alert("Please fill all required fields.");
+      toast("Please fill all required fields.");
       return;
     }
     localStorage.setItem(
@@ -73,12 +74,12 @@ const CheckoutPage = () => {
       JSON.stringify({ ...formData, isSaved: true })
     );
     setIsSaved(true);
-    alert("Delivery information saved successfully!");
+    toast("Delivery information saved successfully!");
   };
 
   const handleSaveInfo = () => {
     if (!address.trim()) {
-      alert("Please enter your address.");
+      toast("Please enter your address.");
       return;
     }
     setIsSaved(true);
@@ -90,7 +91,7 @@ const CheckoutPage = () => {
 
   const handleProceedToPay = () => {
     if (!isSaved) {
-      alert("Please save your address first!");
+      toast("Please save your address first!");
       return;
     }
 
