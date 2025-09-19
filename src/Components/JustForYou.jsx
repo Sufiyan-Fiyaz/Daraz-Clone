@@ -1,20 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Star, Search } from "lucide-react";
-import products from "./ProductData";
 import { useNavigate } from "react-router-dom";
 
 const ProductGrid = () => {
+  const [products, setProducts] = useState([]);
   const [visibleProducts, setVisibleProducts] = useState(18);
   const productsPerLoad = 12;
   const navigate = useNavigate();
+  const baseURL = "https://localhost:7292";
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(`${baseURL}/api/Products`); // ✅ fetch from API
+        const data = await res.json();
+
+        // ✅ Normalize agar array $values ke andar ho
+        const productsArray = Array.isArray(data) ? data : data.$values || [];
+        setProducts(productsArray);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleProductClick = (id) => {
     navigate(`/product/${id}`);
   };
 
-  const allProducts = products;
-
-  // ✅ Corrected renderStars
   const renderStars = (rating, reviews) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
@@ -58,9 +72,9 @@ const ProductGrid = () => {
     setVisibleProducts((prev) => prev + productsPerLoad);
   };
 
-  const displayedProducts = allProducts.slice(0, visibleProducts);
-  const hasMoreProducts = visibleProducts < allProducts.length;
-  const allProductsLoaded = visibleProducts >= allProducts.length;
+  const displayedProducts = products.slice(0, visibleProducts);
+  const hasMoreProducts = visibleProducts < products.length;
+  const allProductsLoaded = visibleProducts >= products.length;
 
   return (
     <div
@@ -145,8 +159,12 @@ const ProductGrid = () => {
                 </div>
               )}
               <img
-                src={product.image}
-                alt={product.title}
+                src={
+                  product.images?.$values?.[0]?.imageUrl
+                    ? `${baseURL}${product.images.$values[0].imageUrl}`
+                    : "https://via.placeholder.com/100"
+                }
+                alt={product.title || "Product"}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -208,7 +226,7 @@ const ProductGrid = () => {
                     color: "#f57224",
                   }}
                 >
-                  {product.currentPrice}
+                  Rs. {product.currentPrice}
                 </span>
                 {product.originalPrice && (
                   <span
@@ -218,7 +236,7 @@ const ProductGrid = () => {
                       textDecoration: "line-through",
                     }}
                   >
-                    {product.originalPrice}
+                    Rs. {product.originalPrice}
                   </span>
                 )}
               </div>

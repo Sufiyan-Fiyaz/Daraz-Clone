@@ -1,24 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { useCart } from "./CartContext"; // <-- import hook from your CartProvider
+import { useCart } from "./CartContext"; // <-- CartProvider hook
 import { useNavigate } from "react-router-dom";
 
-// Helper: "Rs.199,999" -> 199999
-const parsePrice = (priceStr) => {
-  if (!priceStr) return 0;
-  return parseInt(priceStr.replace(/Rs\.|,/g, "").trim());
+// Helper: Convert "Rs.199,999" -> 199999
+const parsePrice = (price) => {
+  if (!price) return 0;
+  return typeof price === "number"
+    ? price
+    : parseFloat(price.toString().replace(/[^\d.-]/g, ""));
 };
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity } = useCart();
-  const [selectedItems, setSelectedItems] = useState(
-    cart.map((item) => item.id)
-  );
+  const [selectedItems, setSelectedItems] = useState([]);
   const [voucherCode, setVoucherCode] = useState("");
   const navigate = useNavigate();
 
+  const BASE_URL = "https://localhost:7292"; // ✅ use same as flashsale/productdetail
+
   useEffect(() => {
+    // select all items when cart changes
     setSelectedItems(cart.map((item) => item.id));
   }, [cart]);
+
+  useEffect(() => {
+    console.log(
+      "Cart item images:",
+      cart.map((c) => c.images)
+    );
+  }, [cart]);
+
+  const getImageUrl = (images) => {
+    // Recursive function to extract first valid URL
+    const extractUrl = (obj) => {
+      if (!obj) return null;
+
+      if (typeof obj === "string")
+        return obj.startsWith("http") ? obj : `${BASE_URL}${obj}`;
+
+      if (obj.imageUrl && typeof obj.imageUrl === "string")
+        return obj.imageUrl.startsWith("http")
+          ? obj.imageUrl
+          : `${BASE_URL}${obj.imageUrl}`;
+
+      // If obj is array, try first element
+      if (Array.isArray(obj) && obj.length > 0) return extractUrl(obj[0]);
+
+      // If obj has $values array
+      if (obj.$values && Array.isArray(obj.$values) && obj.$values.length > 0)
+        return extractUrl(obj.$values[0]);
+
+      return null;
+    };
+
+    const url = extractUrl(images);
+    return url || "/placeholder.png";
+  };
 
   // Select / Unselect All
   const handleSelectAll = () => {
@@ -42,12 +79,10 @@ const CartPage = () => {
   );
 
   // Subtotal
-  const subtotal = cart
-    .filter((item) => selectedItems.includes(item.id))
-    .reduce(
-      (sum, item) => sum + parsePrice(item.currentPrice) * item.quantity,
-      0
-    );
+  const subtotal = selectedCartItems.reduce(
+    (sum, item) => sum + parsePrice(item.currentPrice) * item.quantity,
+    0
+  );
 
   // Quantity Change
   const handleQuantityChange = (id, qty) => {
@@ -207,8 +242,8 @@ const CartPage = () => {
                   />
 
                   <img
-                    src={item.image}
-                    alt={item.title}
+                    src={getImageUrl(item.images)}
+                    alt={item.title || "Product"}
                     style={{
                       width: "100px",
                       height: "100px",

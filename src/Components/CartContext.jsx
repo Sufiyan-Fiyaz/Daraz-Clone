@@ -36,7 +36,34 @@ export const CartProvider = ({ children }) => {
             : item
         );
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+
+      // Normalize images into array of objects
+      let normalizedImages = [];
+
+      if (Array.isArray(product.images)) {
+        normalizedImages = product.images.map((img) =>
+          typeof img === "string" ? { imageUrl: img } : img
+        );
+      } else if (product.images?.$values) {
+        normalizedImages = product.images.$values.map((img) =>
+          typeof img === "string" ? { imageUrl: img } : img
+        );
+      } else if (typeof product.images === "string") {
+        normalizedImages = [{ imageUrl: product.images }];
+      }
+
+      return [
+        ...prevCart,
+        {
+          id: product.id,
+          title: product.title,
+          currentPrice: product.currentPrice,
+          originalPrice: product.originalPrice,
+          images: normalizedImages, // ✅ store as array of objects
+          seller: product.seller || null,
+          quantity: 1,
+        },
+      ];
     });
   };
 

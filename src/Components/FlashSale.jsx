@@ -1,19 +1,31 @@
-import React from "react";
-import { useNavigate } from "react-router-dom"; // ✅ import navigate
-import products from "./ProductData"; // adjust path
-
-// Shuffle helper
-const getRandomProducts = (count) => {
-  const shuffled = [...products].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-};
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const FlashSale = () => {
-  const randomProducts = getRandomProducts(6);
-  const navigate = useNavigate(); // ✅ initialize navigate
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
+  const baseURL = "https://localhost:7292"; // ✅ baseURL without trailing slash
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(`${baseURL}/api/products`);
+        const data = await res.json();
+
+        // Agar API response me $values hai
+        const productsArray = data.$values || data || [];
+
+        const shuffled = [...productsArray].sort(() => 0.5 - Math.random());
+        setProducts(shuffled.slice(0, 6));
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleProductClick = (id) => {
-    navigate(`/product/${id}`); // ✅ navigate to product detail
+    navigate(`/product/${id}`);
   };
 
   return (
@@ -26,7 +38,6 @@ const FlashSale = () => {
         boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
       }}
     >
-      {/* Header */}
       <p style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "15px" }}>
         Flash Sale
       </p>
@@ -60,7 +71,6 @@ const FlashSale = () => {
         </button>
       </div>
 
-      {/* Product Carousel */}
       <div
         style={{
           display: "flex",
@@ -69,10 +79,10 @@ const FlashSale = () => {
           scrollbarWidth: "none",
         }}
       >
-        {randomProducts.map((product) => (
+        {products.map((product, index) => (
           <div
-            key={product.id}
-            onClick={() => handleProductClick(product.id)} // ✅ logic added
+            key={product.id ?? index} // ✅ unique key
+            onClick={() => handleProductClick(product.id)}
             style={{
               minWidth: "180px",
               maxWidth: "200px",
@@ -85,8 +95,12 @@ const FlashSale = () => {
             }}
           >
             <img
-              src={product.image}
-              alt={product.title}
+              src={
+                product.images?.$values?.[0]?.imageUrl
+                  ? `${baseURL}${product.images.$values[0].imageUrl}`
+                  : "/placeholder.png"
+              }
+              alt={product.title || "Product"}
               style={{
                 width: "100%",
                 height: "160px",
@@ -113,14 +127,14 @@ const FlashSale = () => {
                   margin: "4px 0",
                 }}
               >
-                {product.currentPrice}
+                Rs. {product.currentPrice}
               </p>
               <div style={{ fontSize: "12px", color: "#888" }}>
                 <span style={{ textDecoration: "line-through" }}>
-                  {product.originalPrice}
+                  Rs. {product.originalPrice}
                 </span>{" "}
                 <span style={{ color: "#f85606", fontWeight: "bold" }}>
-                  {product.discount}
+                  {product.discount || "20% OFF"}
                 </span>
               </div>
             </div>

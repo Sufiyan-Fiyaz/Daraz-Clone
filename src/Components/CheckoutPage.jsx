@@ -6,6 +6,30 @@ import { toast } from "react-toastify";
 const CheckoutPage = () => {
   const { cart } = useCart();
   const navigate = useNavigate();
+  const BASE_URL = "https://localhost:7292"; // same as CartPage
+
+  const getImageUrl = (images) => {
+    const extractUrl = (obj) => {
+      if (!obj) return null;
+
+      if (typeof obj === "string")
+        return obj.startsWith("http") ? obj : `${BASE_URL}${obj}`;
+
+      if (obj.imageUrl && typeof obj.imageUrl === "string")
+        return obj.imageUrl.startsWith("http")
+          ? obj.imageUrl
+          : `${BASE_URL}${obj.imageUrl}`;
+
+      if (Array.isArray(obj) && obj.length > 0) return extractUrl(obj[0]);
+
+      if (obj.$values && Array.isArray(obj.$values) && obj.$values.length > 0)
+        return extractUrl(obj.$values[0]);
+
+      return null;
+    };
+
+    return extractUrl(images) || "/placeholder.png";
+  };
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -20,7 +44,7 @@ const CheckoutPage = () => {
   });
   const deliveryFee = 125;
   const subtotal = cart.reduce((sum, item) => {
-    const price = Number(item.currentPrice.replace(/[^\d]/g, "")); // remove Rs. and commas
+    const price = Number(String(item.currentPrice || 0).replace(/[^\d]/g, ""));
     return sum + price * (item.quantity || 1);
   }, 0);
   const total = subtotal + deliveryFee;
@@ -724,13 +748,13 @@ const CheckoutPage = () => {
                 }}
               >
                 <img
-                  src={item.image}
-                  alt={item.title}
+                  src={getImageUrl(item.images)}
+                  alt={item.title || "Product"}
                   style={{
-                    width: "60px",
-                    height: "60px",
+                    width: "100px",
+                    height: "100px",
                     objectFit: "cover",
-                    marginRight: "12px",
+                    border: "1px solid #e5e5e5",
                     borderRadius: "4px",
                   }}
                 />

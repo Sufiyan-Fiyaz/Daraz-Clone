@@ -1,33 +1,77 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import products from "./ProductData";
-import {
-  Star,
-  Heart,
-  Share2,
-  MapPin,
-  Shield,
-  Package,
-  MessageCircle,
-  QrCode,
-  ChevronLeft,
-} from "lucide-react";
+import { Star, ChevronLeft } from "lucide-react";
 import { useCart } from "./CartContext.jsx";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [selectedColor, setSelectedColor] = useState(0);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
-  const product = products.find((p) => p.id === parseInt(id));
+  const baseURL = "https://localhost:7292";
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`${baseURL}/api/Products/${id}`);
+        const data = await res.json();
+
+        // Normalize arrays from $values
+        const fixedData = {
+          ...data,
+          images: data.images?.$values || [],
+          colors: data.colors?.$values || [],
+          storageOptions: data.storageOptions?.$values || [],
+        };
+
+        setProduct(fixedData);
+        setSelectedColor(fixedData.colors?.[0] || null);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
   const handleAddToCart = () => {
     if (product) {
       addToCart(product, quantity);
-      // alert(`${product.title} added to cart!`);
     }
   };
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    return [...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        size={14}
+        style={{
+          fill:
+            i < fullStars || (i === fullStars && hasHalfStar)
+              ? "#ffd700"
+              : "none",
+          color:
+            i < fullStars || (i === fullStars && hasHalfStar)
+              ? "#ffd700"
+              : "#ddd",
+        }}
+      />
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "50px" }}>Loading...</div>
+    );
+  }
 
   if (!product) {
     return (
@@ -70,36 +114,6 @@ const ProductDetail = () => {
     );
   }
 
-  const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    return [...Array(5)].map((_, i) => (
-      <Star
-        key={i}
-        size={14}
-        style={{
-          fill:
-            i < fullStars || (i === fullStars && hasHalfStar)
-              ? "#ffd700"
-              : "none",
-          color:
-            i < fullStars || (i === fullStars && hasHalfStar)
-              ? "#ffd700"
-              : "#ddd",
-        }}
-      />
-    ));
-  };
-
-  const colorOptions = [
-    {
-      name: "Multicolour",
-      color: "linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4)",
-    },
-    { name: "Black", color: "#333333" },
-    { name: "White", color: "#ffffff" },
-  ];
-
   return (
     <div
       style={{
@@ -137,35 +151,6 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      {/* Breadcrumb
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "8px 16px",
-          fontSize: "14px",
-          color: "#666",
-          borderBottom: "1px solid #eee",
-        }}
-      >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <span style={{ color: "#3b82f6", cursor: "pointer" }}>
-            TV, Audio / Video, Gaming & Wearables
-          </span>
-          <span style={{ margin: "0 8px" }}>›</span>
-          <span style={{ color: "#3b82f6", cursor: "pointer" }}>Audio</span>
-          <span style={{ margin: "0 8px" }}>›</span>
-          <span style={{ color: "#3b82f6", cursor: "pointer" }}>
-            Headphones & Headsets
-          </span>
-          <span style={{ margin: "0 8px" }}>›</span>
-          <span style={{ color: "#3b82f6", cursor: "pointer" }}>
-            Headphones & Headsets Accessories
-          </span>
-          <span style={{ margin: "0 8px" }}>›</span>
-          <span>{product.title}</span>
-        </div>
-      </div> */}
-
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "16px" }}>
         <div
           style={{
@@ -185,7 +170,7 @@ const ProductDetail = () => {
           >
             <div style={{ position: "relative", marginBottom: "16px" }}>
               <img
-                src={product.image}
+                src={`${baseURL}${product.images?.[0]?.imageUrl}`} // ✅ yahan baseURL add karo
                 alt={product.title}
                 style={{
                   width: "100%",
@@ -195,58 +180,30 @@ const ProductDetail = () => {
                   backgroundColor: "#f8f8f8",
                 }}
               />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "16px",
-                  right: "16px",
-                  display: "flex",
-                  gap: "8px",
-                }}
-              >
-                <button
-                  style={{
-                    padding: "8px",
-                    backgroundColor: "white",
-                    borderRadius: "50%",
-                    border: "none",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <Share2 size={20} style={{ color: "#666" }} />
-                </button>
-                <button
-                  style={{
-                    padding: "8px",
-                    backgroundColor: "white",
-                    borderRadius: "50%",
-                    border: "none",
-                    cursor: "pointer",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  <Heart size={20} style={{ color: "#666" }} />
-                </button>
-              </div>
             </div>
 
             {/* Thumbnail images */}
             <div style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
-              {[1, 2, 3, 4, 5].map((i) => (
+              {product.images?.map((img, idx) => (
                 <img
-                  key={i}
-                  src={product.image}
-                  alt={`Product view ${i}`}
+                  key={idx}
+                  src={`${baseURL}${img.imageUrl}`} // ✅ yahan bhi baseURL add karo
+                  alt="thumb"
                   style={{
-                    width: "64px",
-                    height: "64px",
-                    objectFit: "contain",
+                    width: "48px",
+                    height: "48px",
                     borderRadius: "4px",
-                    border: i === 1 ? "2px solid #f57224" : "2px solid #e5e5e5",
+                    border: "1px solid #ccc",
                     cursor: "pointer",
-                    flexShrink: 0,
-                    backgroundColor: "#f8f8f8",
+                    objectFit: "cover",
+                  }}
+                  onClick={() => {
+                    const newImages = [...product.images];
+                    [newImages[0], newImages[idx]] = [
+                      newImages[idx],
+                      newImages[0],
+                    ];
+                    setProduct({ ...product, images: newImages });
                   }}
                 />
               ))}
@@ -297,13 +254,8 @@ const ProductDetail = () => {
               <span style={{ fontSize: "14px", color: "#3b82f6" }}>
                 {product.brand || "No Brand"}
               </span>
-              <span style={{ fontSize: "14px", color: "#666" }}> | </span>
-              <span style={{ fontSize: "14px", color: "#3b82f6" }}>
-                More Audio from {product.brand || "No Brand"}
-              </span>
             </div>
 
-            {/* Price */}
             {/* Price */}
             <div style={{ marginBottom: "24px" }}>
               <div
@@ -321,7 +273,7 @@ const ProductDetail = () => {
                     color: "#f57224",
                   }}
                 >
-                  {product.currentPrice}
+                  Rs. {product.currentPrice}
                 </span>
 
                 {product.originalPrice && (
@@ -332,7 +284,7 @@ const ProductDetail = () => {
                       textDecoration: "line-through",
                     }}
                   >
-                    {product.originalPrice}
+                    Rs. {product.originalPrice}
                   </span>
                 )}
 
@@ -361,20 +313,26 @@ const ProductDetail = () => {
                   marginBottom: "8px",
                 }}
               >
-                Color Family: Multicolour
+                Color Family
               </span>
               <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "4px",
-                    border: "4px solid #f57224",
-                    background:
-                      "linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4)",
-                    cursor: "pointer",
-                  }}
-                />
+                {product.colors?.map((c, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedColor(c)}
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "4px",
+                      border:
+                        selectedColor?.id === c.id
+                          ? "4px solid #f57224"
+                          : "2px solid #ccc",
+                      backgroundColor: c.colorCode,
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
               </div>
             </div>
 
@@ -438,7 +396,7 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Buy Now and Add to Cart Buttons */}
+            {/* Buy Now and Add to Cart */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
               <button
                 style={{
@@ -456,7 +414,7 @@ const ProductDetail = () => {
                 Buy Now
               </button>
               <button
-                onClick={handleAddToCart} // 👈 bas yeh line
+                onClick={handleAddToCart}
                 style={{
                   flex: "1",
                   padding: "12px",
@@ -497,92 +455,18 @@ const ProductDetail = () => {
               >
                 Delivery Options
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "12px",
-                  marginBottom: "16px",
-                }}
-              >
-                <MapPin
-                  size={20}
-                  style={{ color: "#999", marginTop: "2px", flexShrink: 0 }}
-                />
-                <div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "500",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Sindh, Karachi - Gulshan-e-Iqbal, Block 15
-                  </div>
-                  <button
-                    style={{
-                      color: "#3b82f6",
-                      fontSize: "14px",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
-                  >
-                    CHANGE
-                  </button>
-                </div>
+              <div style={{ fontSize: "14px" }}>
+                {product.delivery?.standardDeliveryText} –{" "}
+                {product.delivery?.standardDeliveryTime} (
+                {product.delivery?.standardDeliveryPrice})
               </div>
-
-              {/* Standard Delivery */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  marginBottom: "12px",
-                }}
-              >
-                <Package size={20} style={{ color: "#999", flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: "500" }}>
-                    Standard Delivery
-                  </div>
-                  <div style={{ fontSize: "12px", color: "#666" }}>
-                    Guaranteed by 16 Sep
-                  </div>
-                </div>
+              {product.delivery?.cashOnDelivery && (
                 <div
-                  style={{ fontSize: "14px", fontWeight: "500", color: "#333" }}
+                  style={{ marginTop: "8px", fontSize: "14px", color: "green" }}
                 >
-                  Rs. 125
-                </div>
-              </div>
-
-              {/* Cash on Delivery */}
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <div
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    backgroundColor: "#f57224",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "12px",
-                    color: "white",
-                    fontWeight: "bold",
-                    flexShrink: 0,
-                  }}
-                >
-                  ₹
-                </div>
-                <span style={{ fontSize: "14px", fontWeight: "500" }}>
                   Cash on Delivery Available
-                </span>
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Return & Warranty */}
@@ -604,84 +488,11 @@ const ProductDetail = () => {
               >
                 Return & Warranty
               </h3>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      backgroundColor: "#e5e5e5",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Shield size={12} style={{ color: "#666" }} />
-                  </div>
-                  <span style={{ fontSize: "14px" }}>14 days easy return</span>
-                </div>
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "12px" }}
-                >
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      backgroundColor: "#e5e5e5",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Package size={12} style={{ color: "#666" }} />
-                  </div>
-                  <span style={{ fontSize: "14px" }}>
-                    Warranty not available
-                  </span>
-                </div>
+              <div style={{ fontSize: "14px" }}>
+                {product.warranty?.easyReturn}
               </div>
-            </div>
-
-            {/* QR Code */}
-            <div
-              style={{
-                backgroundColor: "white",
-                borderRadius: "8px",
-                padding: "16px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  padding: "16px",
-                  borderRadius: "8px",
-                  marginBottom: "12px",
-                  display: "inline-block",
-                }}
-              >
-                <QrCode size={60} style={{ color: "#999" }} />
-              </div>
-              <div
-                style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}
-              >
-                Download app to enjoy exclusive discounts!
-              </div>
-              <div style={{ fontSize: "12px", color: "#999" }}>
-                Scan with mobile
+              <div style={{ fontSize: "14px" }}>
+                {product.warranty?.brandWarranty}
               </div>
             </div>
 
@@ -694,34 +505,7 @@ const ProductDetail = () => {
                 boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                }}
-              >
-                <span style={{ fontSize: "14px", color: "#666" }}>Sold by</span>
-                <button
-                  style={{
-                    backgroundColor: "#f57224",
-                    color: "white",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <MessageCircle size={16} />
-                  Chat Now
-                </button>
-              </div>
-              <div
+              <h3
                 style={{
                   fontWeight: "500",
                   color: "#333",
@@ -729,102 +513,14 @@ const ProductDetail = () => {
                   fontSize: "16px",
                 }}
               >
-                Pak Deals pk (Karachi)
+                Seller Info
+              </h3>
+              <div style={{ fontSize: "14px" }}>
+                {product.seller?.sellerName}
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "16px",
-                  textAlign: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      color: "#333",
-                    }}
-                  >
-                    78%
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    Positive Seller Ratings
-                  </div>
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      color: "#333",
-                    }}
-                  >
-                    99%
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    Ship on Time
-                  </div>
-                </div>
+              <div style={{ fontSize: "14px", color: "#666" }}>
+                {product.seller?.sellerType}
               </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "16px",
-                  textAlign: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontSize: "20px",
-                      fontWeight: "bold",
-                      color: "#999",
-                    }}
-                  >
-                    -
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      lineHeight: "1.2",
-                    }}
-                  >
-                    Chat Response Rate
-                  </div>
-                </div>
-                <div>{/* Empty space for alignment */}</div>
-              </div>
-              <button
-                style={{
-                  width: "100%",
-                  color: "#3b82f6",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  backgroundColor: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                GO TO STORE
-              </button>
             </div>
           </div>
         </div>
