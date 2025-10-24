@@ -29,9 +29,9 @@ https://ollama.com/download
 🧰 Tech Stack
 Frontend:
 
-React.js / Next.js
+React.js 
 
-Tailwind CSS
+CSS
 
 Axios (for API calls)
 
@@ -39,7 +39,7 @@ Context API (state management)
 
 Backend:
 
-Node.js / Express.js
+.NET Core
 
 SQL Database
 
@@ -52,7 +52,7 @@ RESTful APIs
 https://github.com/Sufiyan-Fiyaz/Daraz-Clone.git
 
 # Navigate to project folder
-cd daraz-frontend
+cd Daraz-Clone
 
 # Install dependencies
 npm install
@@ -83,7 +83,7 @@ Muhammad Sufiyan Fiyaz
 
 ## 📸 Screenshots
 
---- Daraz Menybar
+--- Daraz Menubar
 <img width="1872" height="137" alt="image" src="https://github.com/user-attachments/assets/6909c6b8-75b5-4725-b5c7-7d2c9b3d1ffe" />
 
 ---Login Page
