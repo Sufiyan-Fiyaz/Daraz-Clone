@@ -49,7 +49,7 @@ RESTful APIs
 
 ⚙️ Setup Instructions
 # Clone this repo
-git clone https://github.com/your-frontend-repo-link.git
+https://github.com/Sufiyan-Fiyaz/Daraz-Clone.git
 
 # Navigate to project folder
 cd daraz-frontend
