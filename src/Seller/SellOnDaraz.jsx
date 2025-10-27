@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Slide8 from "../assets/SliderImages/Slide8.webp";
-import Slide9 from "../assets/SliderImages/slide9_temp.webp";
+import Slide9 from "../assets/SliderImages/slide9.webp";
 import Slide10 from "../assets/SliderImages/slide10.webp";
 import Slide11 from "../assets/SliderImages/slide11.webp";
 import Slide12 from "../assets/SliderImages/slide12.webp";
